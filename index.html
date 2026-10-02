@@ -429,15 +429,21 @@ a.venue:active { transform: scale(.99); }
 .stickycta a { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px 16px; border-radius: 99px; background: var(--line-green); color: #fff; font-weight: 500; font-size: 14px; text-decoration: none; animation: nudge 2.4s ease-in-out infinite; }
 .stickycta a svg { width: 16px; height: 16px; }
 @keyframes nudge { 0%, 70%, 100% { transform: scale(1); } 80% { transform: scale(1.06); } 90% { transform: scale(.98); } }
-.modal { position: fixed; inset: 0; z-index: 30; display: grid; place-items: end center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: rgba(30, 18, 26, .55); animation: fadeBg .25s ease both; }
-@keyframes fadeBg { from { opacity: 0; } }
-.modal .sheet { width: 100%; max-width: 428px; border-radius: 26px; overflow: hidden; background: var(--surface); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); animation: sheetUp .35s cubic-bezier(.2, 1.2, .4, 1) both; }
-@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } }
-.modal .sheet svg.scene { display: block; width: 100%; height: auto; aspect-ratio: 16 / 7; }
-.modal .sheet .mb { padding: 18px 18px 16px; display: grid; gap: 10px; text-align: center; }
-.modal .sheet h3 { font-size: 21px; line-height: 1.45; }
-.modal .sheet p { color: var(--muted); font-size: 14px; }
-.modal .later { background: none; border: 0; color: var(--muted); font-size: 13px; padding: 6px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+/* 領取名單區塊：頁面上所有按鈕都滑到這裡，只有這裡的按鈕會開 LINE@ */
+.join { display: grid; gap: 14px; padding: 22px 18px; border-radius: 24px; background: var(--surface); border: 2px solid var(--line-green); box-shadow: 0 12px 32px rgba(6, 199, 85, .12); scroll-margin-top: 16px; }
+.join.flash { animation: flash 1.2s ease; }
+@keyframes flash { 0%, 100% { box-shadow: 0 12px 32px rgba(6, 199, 85, .12); } 30% { box-shadow: 0 0 0 6px rgba(6, 199, 85, .35); } }
+.join h2 { font-size: 22px; line-height: 1.45; }
+.join .plan { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line); }
+.join .plan b { font-weight: 500; }
+.join .plan small { display: block; color: var(--muted); font-size: 12.5px; }
+.join .plan .price { font-family: var(--f-display); font-size: 24px; color: var(--line-green); white-space: nowrap; }
+.join ul.inc { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.join ul.inc li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; }
+.join ul.inc li::before { content: "✓"; color: var(--line-green); font-weight: 700; }
+.join ol.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; counter-reset: st; }
+.join ol.steps li { counter-increment: st; display: grid; gap: 4px; justify-items: center; text-align: center; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.join ol.steps li::before { content: counter(st); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--rose-soft); color: var(--rose); font-weight: 700; font-size: 13px; }
 
 .toast {
   position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
@@ -586,20 +592,8 @@ a.venue:active { transform: scale(.99); }
 </div>
 <div class="stickycta" id="stickyCta" hidden>
   <div class="in">
-    <p><b>妳的場地方向整理好了</b>加入 LINE@，讓小幫手直接推薦場地</p>
-    <a class="to-line" id="stickyLine" href="https://lin.ee/WaWogchn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11.1c0 4 3.6 7.4 8.4 8 .3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6C21.4 14.4 22 12.8 22 11.1 22 6.6 17.5 3 12 3z"/></svg>加入 LINE@</a>
-  </div>
-</div>
-<div class="modal" id="lineModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-  <div class="sheet">
-    <div id="modalArt"></div>
-    <div class="mb">
-      <h3 id="modalTitle">妳的推薦名單，小幫手準備好了</h3>
-      <p id="modalText">加入 LINE@，小幫手會依妳的回答，直接傳適合的場地給妳。</p>
-      <a class="btn line to-line" id="modalLine" href="https://lin.ee/WaWogchn">加入 LINE@，傳推薦場地給我</a>
-      <p class="note">免費詢問場地推薦、檔期、預算、方案比較與參觀安排</p>
-      <button class="later" type="button" id="modalLater">先看看結果</button>
-    </div>
+    <p><b>妳的推薦名單已經保留好了</b>免費領取，小幫手依妳的需求推薦場地</p>
+    <a class="to-join" href="#join">領取推薦名單</a>
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -849,7 +843,6 @@ const AUTO = ['pics', 'list', 'tiles', 'scale'];
 function show(id) {
   ['intro', 'quiz', 'loading', 'lead', 'result'].forEach(s => { $(s).hidden = s !== id; });
   $('stickyCta').hidden = id !== 'result';
-  if (id !== 'result') $('lineModal').hidden = true;
   window.scrollTo(0, 0);
 }
 
@@ -1139,11 +1132,11 @@ function renderResult() {
   const tgt = inFrame ? ' target="_blank" rel="noopener"' : '';
   const LINE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11.1c0 4 3.6 7.4 8.4 8 .3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6C21.4 14.4 22 12.8 22 11.1 22 6.6 17.5 3 12 3z"/></svg>';
   const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-  const lineA = (text, cls) => `<a class="${cls} to-line" href="${href}"${tgt}>${LINE_SVG}${text}</a>`;
+  // 頁面上的按鈕都先滑到「領取推薦名單」區塊（像參考影片的付款區），只有那裡的按鈕會開 LINE@
+  const joinA = (text, cls) => `<a class="${cls} to-join" href="#join">${text}<span aria-hidden="true">↓</span></a>`;
   const top = TYPES[r.primary[0]].name;
-  // 每張場地卡整張都可以點，點了就去加 LINE@
   const venue = (k, main) => `
-    <a class="venue ${main ? 'main' : 'alt'} to-line" href="${href}"${tgt}>
+    <a class="venue ${main ? 'main' : 'alt'} to-join" href="#join">
       ${scene(k)}
       <div class="body">
         <div class="top">
@@ -1152,7 +1145,7 @@ function renderResult() {
         </div>
         <p>${TYPES[k].desc}</p>
         ${main ? `<div class="ask"><b>看場地時先問：</b>${TYPES[k].ask}</div>` : ''}
-        <span class="go-line"><span>請小幫手推薦這類場地</span><span aria-hidden="true">→</span></span>
+        <span class="go-line"><span>請小幫手推薦這類場地</span><span aria-hidden="true">↓</span></span>
       </div>
     </a>`;
   const lockedRows = [0, 1, 2].map(i => `<div class="lk"><div class="th">${scene(r.primary[i % r.primary.length])}</div><div class="ln"><i></i><i></i><i></i></div></div>`).join('');
@@ -1181,22 +1174,22 @@ function renderResult() {
     <section class="group fade-in">
       <div class="group-title"><h3>主要推薦方向</h3><small>最符合妳的回答</small></div>
       ${r.primary.map(k => venue(k, true)).join('')}
-      ${lineA(`加入 LINE@，拿${top}口袋名單`, 'inline-cta')}
-    </section>
-
-    <section class="group fade-in">
-      <div class="group-title"><h3>小幫手的推薦名單</h3><small>加入後傳給妳</small></div>
-      <a class="locked to-line" href="${href}"${tgt}>
-        <div class="locked-list">${lockedRows}
-          <div class="lock-pill"><span>${LOCK}加入 LINE@ 看推薦場地</span></div>
-        </div>
-      </a>
-      <p class="note">小幫手會依妳的桌數、地區和婚期，把適合的場地整理給妳。</p>
+      ${joinA(`領取${top}推薦名單`, 'inline-cta')}
     </section>
 
     <section class="group fade-in">
       <div class="group-title"><h3>可一起比較方向</h3><small>放進名單一起看</small></div>
       ${r.compare.map(k => venue(k, false)).join('')}
+    </section>
+
+    <section class="group fade-in">
+      <div class="group-title"><h3>小幫手的推薦名單</h3><small>領取後傳給妳</small></div>
+      <a class="locked to-join" href="#join">
+        <div class="locked-list">${lockedRows}
+          <div class="lock-pill"><span>${LOCK}免費領取推薦場地</span></div>
+        </div>
+      </a>
+      <p class="note">小幫手會依妳的桌數、地區和婚期，把適合的場地整理給妳。</p>
     </section>
 
     <section class="card group fade-in">
@@ -1207,7 +1200,7 @@ function renderResult() {
     <section class="card group fade-in">
       <div class="group-title"><h3>小幫手提醒</h3><small>接下來先確認這些</small></div>
       <ul class="tips">${r.tips.map(t => `<li><div><span class="tip-k">${t.k}</span>${t.t}</div></li>`).join('')}</ul>
-      ${lineA('這些重點，請小幫手幫我確認', 'inline-cta soft')}
+      ${joinA('這些重點，請小幫手幫我確認', 'inline-cta soft')}
     </section>
 
     <section class="group fade-in">
@@ -1220,14 +1213,31 @@ function renderResult() {
           <ul><li>依妳的方向推薦場地</li><li>預算、方案一起比較</li><li>檔期和參觀幫妳安排</li></ul>
           <span class="meter-l">心累程度</span><div class="meter"><i style="width:25%"></i></div></div>
       </div>
-      ${lineA('我要讓小幫手陪我找', 'inline-cta')}
+      ${joinA('我要讓小幫手陪我找', 'inline-cta')}
     </section>
 
-    <section class="cta fade-in">
-      <div class="speech"><div class="avatar" aria-hidden="true">W</div>
-        <p>${nick}，想要我直接幫妳列出${TYPES[r.primary[0]].name}的口袋名單嗎？加入 LINE@ 後，把整理結果傳給我就可以開始囉。</p>
+    <section class="join fade-in" id="join">
+      <span class="eyebrow">for ${nick}</span>
+      <h2>領取妳的${top}推薦名單</h2>
+      <div class="plan">
+        <div><b>WSB 小幫手場地推薦</b><small>依妳的回答一對一推薦</small></div>
+        <span class="price">免費</span>
       </div>
-      ${lineA('加入 LINE@，讓 WSB 小幫手幫我推薦場地', 'btn line')}
+      <ul class="inc">
+        <li>依妳的方向推薦適合的場地</li>
+        <li>幫妳查詢目標日期的檔期</li>
+        <li>預算與方案內容一起比較</li>
+        <li>想看的場地幫妳安排參觀</li>
+      </ul>
+      <ol class="steps">
+        <li>加入 LINE@</li>
+        <li>貼上整理結果<br>（已幫妳複製）</li>
+        <li>小幫手開始推薦</li>
+      </ol>
+      <div class="speech" style="display:flex;gap:10px;align-items:flex-start;font-size:14px"><div class="avatar" aria-hidden="true">W</div>
+        <p>${nick}，加入後把整理結果傳給我，我就照妳的需求開始找場地囉。</p>
+      </div>
+      <a class="btn line to-line" href="${href}"${tgt}>${LINE_SVG}加入 LINE@，讓 WSB 小幫手幫我推薦場地</a>
       <p class="note">加入後可免費詢問場地推薦、檔期、預算、方案比較與參觀安排。</p>
       <div class="line-id">
         <span>按鈕沒反應？打開 LINE 搜尋 ID <b>${LINE_ID}</b></span>
@@ -1238,6 +1248,7 @@ function renderResult() {
     <section class="group faq fade-in">
       <div class="group-title"><h3>常見問題</h3></div>
       <div>${FAQ.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join('')}</div>
+      ${joinA('領取我的推薦名單', 'inline-cta')}
     </section>
 
     <div class="foot-actions">
@@ -1250,43 +1261,31 @@ function renderResult() {
   $('copyIdBtn').addEventListener('click', () => copyText(LINE_ID, () => toast(`已複製 ${LINE_ID}，到 LINE 搜尋加入就好`)));
   lastResult = r;
 
-  // 底部固定列、跳出視窗也指向 LINE@
-  ['stickyLine', 'modalLine'].forEach(id => {
-    const a = $(id);
-    a.href = href;
-    if (inFrame) { a.target = '_blank'; a.rel = 'noopener'; } else { a.removeAttribute('target'); }
-  });
-  $('modalArt').innerHTML = scene(r.primary[0]);
-  $('modalTitle').textContent = `${lead.nick}，妳的${top}推薦名單準備好了`;
-  // 結果出來一下下之後，跳出加入 LINE@ 的視窗
-  clearTimeout(modalTimer);
-  modalShown = 0;
-  modalTimer = setTimeout(openModal, reduced ? 300 : 1400);
+  // 領取區塊出現在畫面上時，底部固定列先收起來
+  if (joinObserver) joinObserver.disconnect();
+  if ('IntersectionObserver' in window) {
+    joinObserver = new IntersectionObserver(([e]) => { $('stickyCta').hidden = $('result').hidden || e.isIntersecting; });
+    joinObserver.observe($('join'));
+  }
 }
 
 let lastResult = null;
-let modalTimer;
-let modalShown = 0;
-function openModal() {
-  if ($('result').hidden || modalShown >= 2) return;
-  modalShown++;
-  $('lineModal').hidden = false;
-  $('modalLine').focus({ preventScroll: true });
-}
-function closeModal() { $('lineModal').hidden = true; }
-$('modalLater').addEventListener('click', closeModal);
-$('lineModal').addEventListener('click', e => { if (e.target === $('lineModal')) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lineModal').hidden) closeModal(); });
-// 任何加入 LINE@ 的按鈕：順手把整理結果複製起來，加入後直接貼給小幫手
+let joinObserver = null;
 document.addEventListener('click', e => {
+  // 頁面上的按鈕：滑到領取區塊，不離開頁面
+  const j = e.target.closest('.to-join');
+  if (j) {
+    e.preventDefault();
+    const box = $('join');
+    if (!box) return;
+    box.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+    return;
+  }
+  // 真正加入 LINE@ 的按鈕：順手把整理結果複製起來，加入後直接貼給小幫手
   const a = e.target.closest('.to-line');
   if (a && lastResult) copySummary(lastResult, true);
 });
-// 看完結果往下滑到底時，再提醒一次
-window.addEventListener('scroll', () => {
-  if ($('result').hidden || modalShown !== 1 || !$('lineModal').hidden) return;
-  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 40) openModal();
-}, { passive: true });
 
 function copyText(text, done) {
   try {
