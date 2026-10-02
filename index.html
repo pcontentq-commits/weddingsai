@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WSB 婚禮場地小幫手</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+/* Layout: one phone-width column; intro scrolls, then a chat thread with a sticky progress header, then loading → lead card → result. */
+:root {
+  --bg: #FAF5F5;
+  --surface: #FFFFFF;
+  --ink: #34262E;
+  --muted: #7E6B73;
+  --line: #ECDDE0;
+  --rose: #B05C77;
+  --rose-soft: #F5E4E8;
+  --on-rose: #FFFFFF;
+  --sage: #64877A;
+  --sage-soft: #E4EEE8;
+  --gold: #B8935A;
+  --glow: rgba(214, 150, 170, .22);
+  --shadow: 0 6px 22px rgba(120, 60, 80, .08);
+  --line-green: #06C755;
+  --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-latin: "Cormorant Garamond", "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C161A; --surface: #271F24; --ink: #F3E8EC; --muted: #B6A3AB; --line: #3A2E35;
+    --rose: #E395AD; --rose-soft: #3C2731; --on-rose: #2A1820; --sage: #9EC0AF; --sage-soft: #22302A;
+    --gold: #D7B985; --glow: rgba(227, 149, 173, .12); --shadow: 0 6px 22px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C161A; --surface: #271F24; --ink: #F3E8EC; --muted: #B6A3AB; --line: #3A2E35;
+  --rose: #E395AD; --rose-soft: #3C2731; --on-rose: #2A1820; --sage: #9EC0AF; --sage-soft: #22302A;
+  --gold: #D7B985; --glow: rgba(227, 149, 173, .12); --shadow: 0 6px 22px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { margin: 0;
+  background: var(--bg);
+  background-image: radial-gradient(120% 60% at 50% -10%, var(--glow), transparent 70%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.app { max-width: 460px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; text-wrap: balance; margin: 0; letter-spacing: .01em; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; }
+
+/* ---------- brand ---------- */
+.brand { display: flex; align-items: center; gap: 10px; padding-block: 20px 8px; }
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--rose-soft); color: var(--rose);
+  font-family: var(--f-latin); font-style: italic; font-size: 17px; line-height: 1;
+  border: 1px solid var(--line);
+}
+.brand-name { font-size: 13px; font-weight: 500; letter-spacing: .06em; }
+.brand-name em { font-family: var(--f-latin); font-size: 16px; color: var(--rose); margin-right: 2px; }
+
+/* ---------- intro ---------- */
+.hero { padding-block: 12px 8px; display: grid; gap: 18px; }
+.chaos { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 6px; padding-block: 10px 4px; }
+.chaos span {
+  font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+  box-shadow: var(--shadow);
+  transform: rotate(var(--r, 0deg)) translateY(var(--y, 0));
+  animation: drift 6s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+.chaos span.q { background: var(--rose-soft); color: var(--rose); border-color: transparent; font-weight: 500; }
+@keyframes drift { 50% { transform: rotate(calc(var(--r, 0deg) * -1)) translateY(calc(var(--y, 0px) - 4px)); } }
+.hero h1 { font-size: clamp(27px, 7.6vw, 34px); line-height: 1.38; }
+.hero h1 .mark { background: linear-gradient(transparent 62%, var(--rose-soft) 62%); }
+.hero .sub { color: var(--muted); font-size: 15px; }
+.hero .sub b { color: var(--ink); font-weight: 500; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 54px; padding: 12px 20px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--rose); color: var(--on-rose);
+  font-size: 16px; font-weight: 500; letter-spacing: .03em; text-decoration: none;
+  box-shadow: 0 8px 20px rgba(176, 92, 119, .25);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn:active { transform: scale(.98); }
+.btn svg { width: 18px; height: 18px; }
+.btn.ghost { background: transparent; color: var(--rose); box-shadow: none; border: 1px solid var(--line); min-height: 46px; font-size: 14px; }
+.btn.line { background: var(--line-green); color: #fff; box-shadow: 0 8px 20px rgba(6, 199, 85, .25); }
+.note { font-size: 12.5px; color: var(--muted); text-align: center; }
+
+.section { margin-top: 40px; display: grid; gap: 14px; }
+.section h2 { font-size: 22px; line-height: 1.45; }
+.section > p { color: var(--muted); }
+.paths { display: grid; gap: 10px; margin-top: 4px; }
+.path {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+  text-align: left; width: 100%; padding: 14px 16px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.path:hover { border-color: var(--rose); }
+.path:active { transform: scale(.99); }
+.path .ico { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--sage-soft); color: var(--sage); }
+.path .ico svg { width: 20px; height: 20px; }
+.path strong { display: block; font-weight: 500; font-size: 15px; }
+.path small { display: block; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.path .go { color: var(--rose); font-size: 18px; }
+.path > div { min-width: 0; }
+
+/* ---------- chat ---------- */
+.chat-head {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  margin-inline: -16px; padding: 12px 16px 10px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.chat-head .row { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--surface); display: grid; place-items: center; cursor: pointer; flex: none; color: var(--ink);
+}
+.icon-btn:disabled { opacity: .35; cursor: default; }
+.icon-btn svg { width: 18px; height: 18px; }
+.who { flex: 1; min-width: 0; line-height: 1.35; }
+.who strong { font-size: 14px; font-weight: 500; display: block; }
+.who small { font-size: 12px; color: var(--sage); }
+.who small::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--sage); margin-right: 5px; vertical-align: 1px; }
+.step { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar { height: 6px; border-radius: 99px; background: var(--rose-soft); margin-top: 10px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--gold), var(--rose)); transition: width .5s ease; }
+
+.thread { display: flex; flex-direction: column; gap: 10px; padding-block: 18px 24px; }
+.msg { display: flex; gap: 8px; align-items: flex-end; max-width: 100%; animation: pop .35s ease both; }
+.msg .avatar { width: 28px; height: 28px; font-size: 14px; }
+.bubble { padding: 11px 15px; border-radius: 18px 18px 18px 6px; background: var(--surface); border: 1px solid var(--line); max-width: 84%; min-width: 0; }
+.bubble .q { font-family: var(--f-display); font-weight: 700; font-size: 17px; line-height: 1.55; display: block; }
+.bubble .qno { font-family: var(--f-latin); font-style: italic; color: var(--rose); font-size: 15px; display: block; line-height: 1.2; margin-bottom: 2px; }
+.bubble .hint { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+.msg.me { justify-content: flex-end; }
+.msg.me .bubble { background: var(--rose); color: var(--on-rose); border-color: transparent; border-radius: 18px 18px 6px 18px; }
+.typing .bubble { display: flex; gap: 5px; padding: 15px 16px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .5; animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; }
+.typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 40% { opacity: 1; transform: translateY(-2px); } }
+@keyframes pop { from { opacity: 0; transform: translateY(8px); } }
+
+.options { display: grid; gap: 8px; padding-left: 36px; margin-top: 4px; }
+.opt {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+  padding: 13px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line);
+  font-size: 15px; line-height: 1.5; box-shadow: var(--shadow);
+  animation: pop .35s ease both; transition: border-color .15s ease, background .15s ease, transform .12s ease;
+}
+.opt::before { content: ""; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line); transition: all .15s ease; }
+.opt:hover { border-color: var(--rose); }
+.opt:hover::before { border-color: var(--rose); }
+.opt:active { transform: scale(.985); }
+.opt.picked { background: var(--rose-soft); border-color: var(--rose); }
+.opt.picked::before { background: var(--rose); border-color: var(--rose); box-shadow: inset 0 0 0 3px var(--surface); }
+
+/* ---------- loading ---------- */
+.screen-center { min-height: 72vh; display: grid; align-content: center; gap: 22px; padding-block: 24px; }
+.ring { width: 64px; height: 64px; margin: 0 auto; position: relative; }
+.ring::before, .ring::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--gold); }
+.ring::after { inset: 10px; border-color: var(--rose); animation: spin 2.4s linear infinite; border-top-color: transparent; }
+.ring::before { animation: spin 3.6s linear infinite reverse; border-bottom-color: transparent; opacity: .7; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading h2 { font-size: 21px; text-align: center; line-height: 1.5; }
+.done-label { font-size: 13px; color: var(--muted); letter-spacing: .08em; }
+.checks { list-style: none; margin: 0; padding: 18px 20px; display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; }
+.checks li { display: flex; align-items: center; gap: 10px; color: var(--muted); transition: color .3s ease; }
+.checks li::before {
+  content: ""; flex: none; width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px dashed var(--line); transition: all .3s ease;
+}
+.checks li.ok { color: var(--ink); }
+.checks li.ok::before {
+  border: 0; background: var(--sage) no-repeat center / 12px
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+
+/* ---------- lead ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 22px 18px; box-shadow: var(--shadow); }
+.lead { display: grid; gap: 18px; margin-top: 8px; }
+.lead-head { display: grid; gap: 6px; }
+.lead-head h2 { font-size: 22px; }
+.lead-head p { color: var(--muted); font-size: 14px; }
+.field { display: grid; gap: 7px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.field > label, .field > legend { font-size: 14px; font-weight: 500; padding: 0; }
+.field .opt-tag { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+.input {
+  width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 16px;
+}
+.input:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px var(--rose-soft); }
+.input:disabled { opacity: .45; }
+.date-row { display: flex; gap: 8px; align-items: stretch; }
+.date-row .input { flex: 1; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg); font-size: 14px; cursor: pointer; white-space: nowrap;
+  transition: all .15s ease;
+}
+.chip input:checked + span { background: var(--rose-soft); border-color: var(--rose); color: var(--rose); font-weight: 500; }
+.chip input:focus-visible + span { outline: 2px solid var(--rose); outline-offset: 2px; }
+.date-row .chip span { min-height: 48px; border-radius: 14px; }
+.err { font-size: 13px; color: var(--rose); min-height: 1em; }
+.privacy { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* ---------- result ---------- */
+.result { display: grid; gap: 22px; padding-top: 8px; }
+.result-head { display: grid; gap: 8px; }
+.eyebrow { font-family: var(--f-latin); font-style: italic; color: var(--gold); font-size: 17px; line-height: 1; }
+.result-head h1 { font-size: clamp(25px, 7vw, 30px); line-height: 1.4; }
+.result-head p { color: var(--muted); }
+.group { display: grid; gap: 10px; }
+.group-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.group-title h3 { font-size: 17px; }
+.group-title small { font-size: 12px; color: var(--muted); }
+.venue {
+  display: grid; gap: 10px; padding: 18px; border-radius: 22px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.venue.main { border-color: var(--rose); box-shadow: 0 10px 28px rgba(176, 92, 119, .12); }
+.venue .top { display: flex; align-items: center; gap: 12px; }
+.venue .vico { width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; flex: none; background: var(--rose-soft); color: var(--rose); }
+.venue.alt .vico { background: var(--sage-soft); color: var(--sage); }
+.venue .vico svg { width: 24px; height: 24px; }
+.venue .nm { flex: 1; min-width: 0; line-height: 1.35; }
+.venue .nm strong { font-family: var(--f-display); font-size: 19px; display: block; }
+.venue .nm em { font-family: var(--f-latin); color: var(--muted); font-size: 14px; }
+.venue .tag { font-size: 12px; padding: 3px 10px; border-radius: 99px; background: var(--rose-soft); color: var(--rose); white-space: nowrap; }
+.venue.alt .tag { background: var(--sage-soft); color: var(--sage); }
+.venue p { color: var(--muted); font-size: 14px; }
+.venue .ask { font-size: 13.5px; padding: 10px 12px; border-radius: 12px; background: var(--bg); }
+.venue .ask b { font-weight: 500; color: var(--ink); }
+.venue.alt { padding: 14px 16px; }
+.venue.alt .vico { width: 40px; height: 40px; border-radius: 13px; }
+.venue.alt .nm strong { font-size: 17px; }
+
+.dist { display: grid; gap: 8px; }
+.dist-row { display: grid; grid-template-columns: 5.5em 1fr 2.2em; gap: 10px; align-items: center; font-size: 13px; }
+.dist-row .track { height: 8px; border-radius: 99px; background: var(--rose-soft); overflow: hidden; }
+.dist-row .track i { display: block; height: 100%; border-radius: inherit; background: var(--rose); opacity: .85; }
+.dist-row.alt .track i { background: var(--sage); }
+.dist-row.zero { color: var(--muted); }
+.dist-row .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.tips li { display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 14px; }
+.tips li > div { min-width: 0; }
+.tips .tip-k { display: block; font-size: 12px; color: var(--gold); letter-spacing: .06em; }
+.tips li::before {
+  content: ""; width: 8px; height: 8px; margin-top: 9px; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 20%, transparent);
+}
+.cta { display: grid; gap: 10px; padding: 20px 18px; border-radius: 24px; background: var(--rose-soft); }
+.cta .speech { font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.cta .speech .avatar { background: var(--surface); }
+.line-id { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 10px; font-size: 13px; color: var(--muted); text-align: center; }
+.line-id b { color: var(--ink); font-weight: 500; user-select: all; }
+.line-id button { font-size: 13px; padding: 4px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--rose); cursor: pointer; }
+.foot-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px);
+  background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 99px; font-size: 14px;
+  opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 20; max-width: calc(100% - 32px);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.fade-in { animation: pop .45s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ INTRO ============ -->
+  <section id="intro">
+    <div class="brand">
+      <div class="avatar" aria-hidden="true">W</div>
+      <div class="brand-name"><em>WSB</em> 婚禮場地小幫手</div>
+    </div>
+
+    <div class="hero">
+      <div class="chaos" aria-hidden="true">
+        <span style="--r:-4deg;--y:4px;--d:-1s">星級酒店</span>
+        <span style="--r:3deg;--y:-2px;--d:-3s">婚宴會館</span>
+        <span style="--r:-2deg;--y:6px;--d:-2s">戶外證婚</span>
+        <span class="q" style="--r:5deg;--y:0px;--d:-4s">到底選哪個？</span>
+        <span style="--r:-5deg;--y:3px;--d:-5s">特色場地</span>
+        <span style="--r:2deg;--y:-3px;--d:-1.5s">小型家宴</span>
+        <span style="--r:-3deg;--y:5px;--d:-2.5s">度假婚禮</span>
+      </div>
+      <h1>婚禮場地好多，妳是不是也<span class="mark">越看越混亂</span>？</h1>
+      <p class="sub">星級酒店、婚宴會館、戶外證婚、特色場地、小型家宴、度假婚禮，每一種都好像不錯，但真正適合妳的，其實要看妳想要的<b>婚禮畫面、賓客人數、預算</b>和<b>在意的細節</b>。</p>
+      <button class="btn" id="startBtn" type="button">
+        讓 WSB 小幫手幫我縮小範圍
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <p class="note">6 個小問題・大約 1 分鐘・完全免費</p>
+    </div>
+
+    <div class="section">
+      <h2>不用先懂場地，也不用一次做決定</h2>
+      <p>回答幾個簡單問題，WSB 小幫手會先了解妳的婚禮想像，幫妳整理可能適合的場地方向。不管妳現在只是剛開始看資料，還是已經看到選擇障礙，都可以先從這裡開始。</p>
+      <div class="paths">
+        <button class="path" type="button" data-path="0">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></span>
+          <div><strong>我還沒有方向</strong><small>先從婚禮畫面開始整理</small></div>
+          <span class="go" aria-hidden="true">›</span>
+        </button>
+        <button class="path" type="button" data-path="1">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M5 8h14M5 8l-2.5 6a3 3 0 0 0 5 0zM19 8l-2.5 6a3 3 0 0 0 5 0zM8 20h8"/></svg></span>
+          <div><strong>我正在比較場地</strong><small>幫妳抓出真正該比較的條件</small></div>
+          <span class="go" aria-hidden="true">›</span>
+        </button>
+        <button class="path" type="button" data-path="2">
+          <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></span>
+          <div><strong>我想快點縮小名單</strong><small>讓小幫手依需求推薦方向</small></div>
+          <span class="go" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHAT ============ -->
+  <section id="chat" hidden>
+    <header class="chat-head">
+      <div class="row">
+        <button class="icon-btn" id="backBtn" type="button" aria-label="回到上一題" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="avatar" aria-hidden="true">W</div>
+        <div class="who"><strong>WSB 小幫手</strong><small>正在陪妳整理</small></div>
+        <span class="step" id="stepLabel">第 1 / 6 題</span>
+      </div>
+      <div class="bar" role="progressbar" aria-label="作答進度" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="bar"><i id="barFill"></i></div>
+    </header>
+    <div class="thread" id="thread" aria-live="polite"></div>
+  </section>
+
+  <!-- ============ LOADING ============ -->
+  <section id="loading" hidden>
+    <div class="screen-center loading">
+      <div class="ring" aria-hidden="true"></div>
+      <h2>WSB 小幫手正在幫妳<br>整理場地方向...</h2>
+      <div>
+        <p class="done-label">已整理：</p>
+        <ul class="checks" id="checks">
+          <li>妳偏好的婚禮氛圍</li>
+          <li>妳在意的場地條件</li>
+          <li>妳可能適合的場地類型</li>
+          <li>後續推薦時需要注意的重點</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEAD ============ -->
+  <section id="lead" hidden>
+    <div class="brand">
+      <div class="avatar" aria-hidden="true">W</div>
+      <div class="brand-name"><em>WSB</em> 婚禮場地小幫手</div>
+    </div>
+    <form class="card lead" id="leadForm" novalidate>
+      <div class="lead-head">
+        <h2>把妳的場地建議傳給妳</h2>
+        <p>留下簡單資訊後，WSB 小幫手可以依照妳的需求，協助整理適合的場地方向與後續推薦。</p>
+      </div>
+
+      <div class="field">
+        <label for="nick">怎麼稱呼妳？</label>
+        <input class="input" id="nick" name="nick" type="text" placeholder="例如：小安" autocomplete="nickname" maxlength="20">
+      </div>
+
+      <fieldset class="field">
+        <legend>婚期</legend>
+        <div class="date-row">
+          <input class="input" id="wdate" name="wdate" type="month" aria-label="婚期月份">
+          <label class="chip"><input type="checkbox" id="wdateUnsure"><span>還不確定</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="field">
+        <legend>婚禮地區</legend>
+        <div class="chips" id="regionChips"></div>
+      </fieldset>
+
+      <div class="field">
+        <label for="contact">LINE 顯示名稱或手機</label>
+        <input class="input" id="contact" name="contact" type="text" placeholder="方便小幫手找到妳就好" autocomplete="tel" maxlength="40">
+      </div>
+
+      <p class="err" id="leadErr" role="alert"></p>
+      <button class="btn" type="submit">看我的場地方向</button>
+      <p class="privacy">資料只用於這次的場地推薦，不會另外公開。</p>
+    </form>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" hidden>
+    <div class="result" id="resultBody"></div>
+  </section>
+
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// WSB 的 LINE@ 加好友連結
+const LINE_URL = 'https://lin.ee/WaWogchn';
+const LINE_ID = '@328pqplw';
+// 嵌在框架裡（例如 claude.ai 預覽）時開新分頁；自架網站直接在同一頁開，手機和 LINE / IG 內建瀏覽器最穩
+let inFrame = true;
+try { inFrame = window.self !== window.top; } catch (e) {}
+// Google 試算表的 Apps Script 網頁應用程式網址（…/exec），留空則不送出名單
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxL5L5J7eROlsb5P416UNtgycWM_MFaFMSaG4h818mYIJ33x8w0tluxUeo0kYSDd5INIA/exec';
+
+const ICON = {
+  A: '<path d="M5 21V5l7-2 7 2v16M3 21h18M9 8.5h1M14 8.5h1M9 12.5h1M14 12.5h1M10 21v-4h4v4"/>',
+  B: '<path d="M12 3v3M5.5 9h13M7 9c0 3 2.2 5 5 5s5-2 5-5M4 20h16M7 20v-3M17 20v-3M12 14v3"/>',
+  C: '<path d="M5 21V11a7 7 0 0 1 14 0v10M3 21h18M9 21v-6a3 3 0 0 1 6 0v6M12 4V2"/>',
+  D: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 16l.6 1.6 1.6.6-1.6.6-.6 1.7-.6-1.7-1.6-.6 1.6-.6z"/>',
+  E: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M12 17.5s-3-1.8-3-3.7a1.6 1.6 0 0 1 3-.6 1.6 1.6 0 0 1 3 .6c0 1.9-3 3.7-3 3.7z"/>',
+  F: '<path d="M8 11a4 4 0 0 1 8 0M12 3v2M5.5 6l1.4 1.4M18.5 6l-1.4 1.4M2 15c2 0 2-1.4 4-1.4s2 1.4 4 1.4 2-1.4 4-1.4 2 1.4 4 1.4 2-1.4 4-1.4M2 19c2 0 2-1.4 4-1.4s2 1.4 4 1.4 2-1.4 4-1.4 2 1.4 4 1.4 2-1.4 4-1.4"/>'
+};
+const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+
+const TYPES = {
+  A: { name: '星級酒店', en: 'Grand Hotel', desc: '適合重視質感、服務、交通、長輩體面與中大型宴客的新人。', ask: '宴會廳挑高與柱位、每桌服務人力、試菜安排' },
+  B: { name: '婚宴會館', en: 'Banquet Hall', desc: '適合希望方案清楚、流程成熟、桌數彈性、快速比較預算與內容的新人。', ask: '每桌價格、服務費、低消桌數、方案內含項目' },
+  C: { name: '戶外婚禮場地', en: 'Garden & Outdoor', desc: '適合喜歡自然光、草地、花園、戶外儀式與拍照畫面的新人。', ask: '雨備空間位置與大小、雨備啟用時間、夏季遮陽' },
+  D: { name: '特色婚禮場地', en: 'Unique Venue', desc: '適合想要非制式、有故事感、能做出專屬風格的新人。', ask: '進場佈置時間、電力音響、外燴與婚企配合方式' },
+  E: { name: '小型家宴場地', en: 'Intimate Dinner', desc: '適合小桌數、重視私密感、溫馨聚餐與親友互動品質的新人。', ask: '最低桌數或包場門檻、是否有獨立包廂、座位安排彈性' },
+  F: { name: '度假婚禮', en: 'Destination Wedding', desc: '適合希望結合住宿、旅行、海邊、山景或度假飯店體驗的新人。', ask: '住宿房數保留、賓客交通接駁、婚禮前後的行程安排' }
+};
+const L = ['A', 'B', 'C', 'D', 'E', 'F'];
+const AFFINITY = { A: ['B', 'F'], B: ['A', 'E'], C: ['F', 'D'], D: ['C', 'E'], E: ['D', 'B'], F: ['C', 'A'] };
+
+const QS = [
+  { q: '想到婚禮那天，妳最希望它像什麼？',
+    o: ['一場有質感的正式宴會', '一場親友都吃得開心的婚宴', '一場有自然光和戶外儀式的婚禮', '一場很有個性、不像別人的婚禮', '一場溫馨的小型家宴', '一趟和親友一起完成的旅行'],
+    react: '好喜歡這個畫面，我先幫妳記下來。' },
+  { q: '妳現在找場地時，最困擾的是什麼？',
+    o: ['不知道星級酒店差在哪裡', '婚宴會館方案好多，看不懂怎麼比', '想辦戶外婚禮，但怕天氣和雨備', '想找特色場地，但怕執行太麻煩', '人數不多，怕場地太大或不夠溫馨', '想要度假感，但不知道交通住宿怎麼安排'],
+    react: '這個真的很多新人都卡過，等等我會把它放進提醒裡。' },
+  { q: '如果小幫手只能先幫妳一件事，妳最想要？',
+    o: ['找有質感、服務穩定的星級酒店', '比較符合桌數與預算的婚宴會館', '找有戶外儀式與雨備的場地', '找有特色、能做出專屬風格的場地', '找適合家宴、小桌數、私密聚餐的場地', '找有度假感、可安排住宿或旅行的場地'],
+    react: '收到，我知道要先從哪裡幫妳找了。' },
+  { q: '妳希望賓客回家後怎麼形容這場婚禮？',
+    o: ['很高級，很有質感', '很順，吃得好，安排很完整', '很美，現場超好拍', '很特別，很像你們兩個', '很溫暖，大家真的有聚在一起', '很難忘，像參加一趟小旅行'],
+    react: '嗯嗯，賓客的感受也是選場地很重要的線索。' },
+  { q: '妳現在的籌備狀態比較像哪一種？',
+    o: ['剛開始看資料，還沒有明確方向', '已經查很多場地，但越看越亂', '有喜歡的場地類型，但不知道哪間適合', '已經看過幾間，想找人幫忙比較', '婚期有點近，希望快點縮小名單', '還不確定婚禮形式，想先聊聊方向'],
+    react: '了解，不急，我們一步一步來。最後一題囉！' },
+  { q: '小幫手推薦時，妳最希望優先考量什麼？',
+    o: ['質感與服務', '預算與方案內容', '交通與停車', '拍照畫面與場地特色', '小桌數友善與私密感', '住宿、度假感與完整體驗'],
+    react: '全部完成！謝謝妳這麼認真回答，我來整理一下。' }
+];
+
+const TIP_PAIN = {
+  A: '比較星級酒店時，宴會廳挑高、柱子位置、每桌服務人力和試菜安排，往往比星等更能看出差別。',
+  B: '婚宴會館的方案先拆成「每桌價格、服務費、酒水、場佈、低消桌數」五項再比，比較不會被贈品搞混。',
+  C: '戶外婚禮先問清楚雨備場地在哪、坐得下多少人、最晚何時決定啟用，以及雨備是否另外收費。',
+  D: '特色場地先確認可進場佈置的時間、電力與音響、洗手間和賓客動線，還有是否有合作的婚企團隊。',
+  E: '人數不多的話，可以問有沒有包廂或半包場、最低桌數是多少，避免大廳只坐一角顯得冷清。',
+  F: '度假婚禮先抓好賓客的交通方式、住宿房數保留與價格，也要想想長輩移動是否方便。'
+};
+const TIP_PRIORITY = {
+  A: '參觀時留意現場人員的應對和流程說明，服務細節常常比裝潢更影響當天的感受。',
+  B: '請每間場地提供同桌數、同日期的報價明細，並確認是否含服務費、桌數增減怎麼算。',
+  C: '確認離捷運或車站的距離、停車位數量、有沒有停車折抵，長輩賓客會特別在意。',
+  D: '盡量在接近婚禮時段的時間去看場地，才能看到真實的光線和拍照角度。',
+  E: '確認能不能獨立包場或有專屬空間，主桌和親友之間的距離感也值得現場感受一下。',
+  F: '問清楚住宿合約、房型保留期限，以及婚禮前後能不能安排親友一起的小活動。'
+};
+const TIP_STAGE = {
+  A: '先收集 3–5 張喜歡的婚禮照片，帶著畫面去看場地，會比先看價格更快找到方向。',
+  B: '先把名單縮到 3 間以內，盡量在同一週參觀完，印象比較不會混在一起。',
+  C: '把喜歡的類型告訴小幫手，可以直接幫妳列出 2–3 間同類型場地一起比較。',
+  D: '把已經看過的場地和報價丟給小幫手，可以幫妳整理成一張好比較的清單。',
+  E: '婚期比較近的話，先確認目標日期的檔期，再談方案內容，可以省下不少時間。',
+  F: '還不確定形式也沒關係，先抓出大約的賓客人數，場地方向就會清楚很多。'
+};
+const OPENERS = [
+  '嗨，我是 WSB 小幫手！接下來 6 個小問題，每題選一個最有感覺的就好，大概 1 分鐘。',
+  '嗨，我是 WSB 小幫手！還沒有方向完全沒關係，我們先從妳腦中的婚禮畫面開始聊。',
+  '嗨，我是 WSB 小幫手！正在比較場地的話，我們先把妳真正在意的條件找出來。',
+  '嗨，我是 WSB 小幫手！想快點縮小名單的話，回答完 6 題，我直接幫妳整理方向。'
+];
+const REGIONS = ['台北', '新北', '桃園', '新竹', '台中', '彰化', '台南', '高雄', '宜花東', '其他'];
+
+const $ = id => document.getElementById(id);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 120) : ms));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+let answers = [];
+let cur = 0;
+let seq = 0;
+const qStart = [];
+let lead = null;
+
+function show(id) {
+  ['intro', 'chat', 'loading', 'lead', 'result'].forEach(s => { $(s).hidden = s !== id; });
+  window.scrollTo(0, 0);
+}
+
+function scrollDown() {
+  requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: reduced ? 'auto' : 'smooth' }));
+}
+
+function addMsg(html, me) {
+  const el = document.createElement('div');
+  el.className = 'msg' + (me ? ' me' : '');
+  el.innerHTML = (me ? '' : '<div class="avatar" aria-hidden="true">W</div>') + `<div class="bubble">${html}</div>`;
+  $('thread').appendChild(el);
+  scrollDown();
+  return el;
+}
+
+async function botSay(html, s, ms = 700) {
+  const t = document.createElement('div');
+  t.className = 'msg typing';
+  t.innerHTML = '<div class="avatar" aria-hidden="true">W</div><div class="bubble" aria-label="小幫手輸入中"><i></i><i></i><i></i></div>';
+  $('thread').appendChild(t);
+  scrollDown();
+  await wait(ms);
+  t.remove();
+  if (s !== seq) return null;
+  return addMsg(html);
+}
+
+function updateProgress() {
+  const n = answers.length;
+  $('barFill').style.width = (n / 6 * 100) + '%';
+  $('bar').setAttribute('aria-valuenow', n);
+  $('stepLabel').textContent = `第 ${Math.min(cur + 1, 6)} / 6 題`;
+  $('backBtn').disabled = cur === 0;
+}
+
+async function startChat(path) {
+  seq++;
+  const s = seq;
+  answers = []; cur = 0; qStart.length = 0;
+  $('thread').innerHTML = '';
+  show('chat');
+  updateProgress();
+  const first = await botSay(OPENERS[path], s, 600);
+  if (!first) return;
+  ask(0, s);
+}
+
+async function ask(i, s, instant) {
+  cur = i;
+  updateProgress();
+  const q = QS[i];
+  const html = `<span class="qno">Q${i + 1}.</span><span class="q">${q.q}</span><span class="hint">沒有標準答案，選最接近妳直覺的就好。</span>`;
+  let bubble;
+  if (instant) bubble = addMsg(html);
+  else {
+    const marker = document.createComment('q' + i);
+    $('thread').appendChild(marker);
+    qStart[i] = marker;
+    bubble = await botSay(html, s, 800);
+    if (!bubble) return;
+  }
+  if (instant) qStart[i] = bubble;
+  const box = document.createElement('div');
+  box.className = 'options';
+  box.setAttribute('role', 'group');
+  box.setAttribute('aria-label', q.q);
+  q.o.forEach((text, k) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt';
+    b.style.animationDelay = (k * 60) + 'ms';
+    b.textContent = text;
+    b.addEventListener('click', () => pick(i, k, b, box));
+    box.appendChild(b);
+  });
+  $('thread').appendChild(box);
+  scrollDown();
+}
+
+async function pick(i, k, btn, box) {
+  if (cur !== i || box.dataset.done) return;
+  box.dataset.done = '1';
+  const s = seq;
+  btn.classList.add('picked');
+  answers[i] = L[k];
+  cur = i + 1;
+  updateProgress();
+  await wait(260);
+  if (s !== seq) return;
+  box.remove();
+  addMsg(esc(QS[i].o[k]), true);
+  const r = await botSay(QS[i].react, s, 650);
+  if (!r) return;
+  if (i < 5) ask(i + 1, s);
+  else { await wait(700); if (s === seq) runLoading(); }
+}
+
+function goBack() {
+  const target = cur - 1;
+  if (target < 0) return;
+  seq++;
+  let node = qStart[target];
+  while (node) { const next = node.nextSibling; node.remove(); node = next; }
+  answers.length = target;
+  ask(target, seq, true);
+}
+
+async function runLoading() {
+  seq++;
+  const s = seq;
+  show('loading');
+  const items = [...$('checks').children];
+  items.forEach(li => li.classList.remove('ok'));
+  for (const li of items) {
+    await wait(750);
+    if (s !== seq) return;
+    li.classList.add('ok');
+  }
+  await wait(700);
+  if (s !== seq) return;
+  show('lead');
+}
+
+function compute(ans) {
+  const score = {}; L.forEach(l => score[l] = 0);
+  ans.forEach(l => score[l]++);
+  // 同分時：Q3（最想先被幫的事）> Q6（優先考量）> Q1（婚禮畫面）
+  const tb = {}; L.forEach(l => tb[l] = 0);
+  tb[ans[2]] += .3; tb[ans[5]] += .2; tb[ans[0]] += .1;
+  const sorted = L.slice().sort((a, b) => (score[b] + tb[b]) - (score[a] + tb[a]));
+  const primary = [sorted[0]];
+  const s0 = score[sorted[0]], s1 = score[sorted[1]];
+  if (s1 > 0 && (s1 === s0 || (s1 >= 2 && s0 - s1 <= 1))) primary.push(sorted[1]);
+  const rest = sorted.filter(l => !primary.includes(l) && score[l] > 0);
+  const compare = [];
+  if (rest.length) {
+    compare.push(rest[0]);
+    if (rest[1] && score[rest[1]] === score[rest[0]]) compare.push(rest[1]);
+  }
+  // 答案很集中時，補上相近的延伸方向，不把妳鎖死在單一類型
+  for (const p of primary) for (const a of AFFINITY[p]) {
+    if (compare.length < 1 || (compare.length < 2 && rest.length === 0)) {
+      if (!primary.includes(a) && !compare.includes(a)) compare.push(a);
+    }
+  }
+  const tips = [
+    { k: '關於妳最困擾的事', t: TIP_PAIN[ans[1]] },
+    { k: '關於妳最在意的條件', t: TIP_PRIORITY[ans[5]] },
+    { k: '關於妳現在的進度', t: TIP_STAGE[ans[4]] }
+  ];
+  return { score, primary, compare, tips };
+}
+
+function dateText() {
+  if (!lead) return '';
+  if (lead.unsure || !lead.date) return '還不確定';
+  const [y, m] = lead.date.split('-');
+  return `${y} 年 ${Number(m)} 月`;
+}
+
+function renderResult() {
+  const r = compute(answers);
+  const venue = (k, main) => `
+    <article class="venue ${main ? 'main' : 'alt'}">
+      <div class="top">
+        <div class="vico">${svg(k)}</div>
+        <div class="nm"><strong>${TYPES[k].name}</strong><em>${TYPES[k].en}</em></div>
+        <span class="tag">${r.score[k] ? `${r.score[k]} 題選到` : '延伸方向'}</span>
+      </div>
+      <p>${TYPES[k].desc}</p>
+      ${main ? `<div class="ask"><b>看場地時先問：</b>${TYPES[k].ask}</div>` : ''}
+    </article>`;
+  const dist = L.slice().sort((a, b) => r.score[b] - r.score[a]).map(k => `
+    <div class="dist-row ${r.primary.includes(k) ? '' : 'alt'} ${r.score[k] ? '' : 'zero'}">
+      <span>${TYPES[k].name}</span>
+      <span class="track"><i style="width:${r.score[k] / 6 * 100}%"></i></span>
+      <span class="n">${r.score[k]}/6</span>
+    </div>`).join('');
+  const nick = esc(lead.nick);
+  const href = LINE_URL || 'https://line.me/';
+
+  $('resultBody').innerHTML = `
+    <header class="result-head fade-in">
+      <span class="eyebrow">for ${nick}</span>
+      <h1>妳的場地方向已整理完成</h1>
+      <p>從妳的回答來看，妳目前可以先從以下方向開始看場地。</p>
+    </header>
+
+    <section class="group fade-in">
+      <div class="group-title"><h3>主要推薦方向</h3><small>最符合妳的回答</small></div>
+      ${r.primary.map(k => venue(k, true)).join('')}
+    </section>
+
+    <section class="group fade-in">
+      <div class="group-title"><h3>可一起比較方向</h3><small>放進名單一起看</small></div>
+      ${r.compare.map(k => venue(k, false)).join('')}
+    </section>
+
+    <section class="card group fade-in">
+      <div class="group-title"><h3>妳的偏好分布</h3><small>6 題裡選到幾次</small></div>
+      <div class="dist">${dist}</div>
+    </section>
+
+    <section class="card group fade-in">
+      <div class="group-title"><h3>小幫手提醒</h3><small>接下來先確認這些</small></div>
+      <ul class="tips">${r.tips.map(t => `<li><div><span class="tip-k">${t.k}</span>${t.t}</div></li>`).join('')}</ul>
+    </section>
+
+    <section class="cta fade-in">
+      <div class="speech"><div class="avatar" aria-hidden="true">W</div>
+        <p>${nick}，想要我直接幫妳列出${TYPES[r.primary[0]].name}的口袋名單嗎？加入 LINE@ 後，把下面的整理結果傳給我就可以開始囉。</p>
+      </div>
+      <a class="btn line" id="lineBtn" href="${href}"${inFrame ? ' target="_blank" rel="noopener"' : ''}>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11.1c0 4 3.6 7.4 8.4 8 .3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.9-3.5 8-6C21.4 14.4 22 12.8 22 11.1 22 6.6 17.5 3 12 3z"/></svg>
+        加入 LINE@，讓 WSB 小幫手幫我推薦場地
+      </a>
+      <p class="note">加入後可免費詢問場地推薦、檔期、預算、方案比較與參觀安排。</p>
+      <div class="line-id">
+        <span>按鈕沒反應？打開 LINE 搜尋 ID <b>${LINE_ID}</b></span>
+        <button type="button" id="copyIdBtn">複製 ID</button>
+      </div>
+      <div class="foot-actions">
+        <button class="btn ghost" type="button" id="copyBtn">複製我的整理結果</button>
+        <button class="btn ghost" type="button" id="againBtn">重新回答一次</button>
+      </div>
+    </section>`;
+
+  $('copyBtn').addEventListener('click', () => copySummary(r));
+  $('againBtn').addEventListener('click', () => startChat(0));
+  $('copyIdBtn').addEventListener('click', () => copyText(LINE_ID, () => toast(`已複製 ${LINE_ID}，到 LINE 搜尋加入就好`)));
+  // 點加入時順手把整理結果複製起來，加入後直接貼給小幫手
+  $('lineBtn').addEventListener('click', () => copySummary(r, true));
+}
+
+function copyText(text, done) {
+  try {
+    navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  } catch (e) { fallbackCopy(text, done); }
+}
+
+function copySummary(r, quiet) {
+  const text = [
+    `嗨 WSB 小幫手，我是${lead.nick}～`,
+    `婚期：${dateText()}｜地區：${lead.region}`,
+    `主要推薦方向：${r.primary.map(k => TYPES[k].name).join('、')}`,
+    `可一起比較方向：${r.compare.map(k => TYPES[k].name).join('、')}`,
+    `我最在意：${QS[5].o[L.indexOf(answers[5])]}`,
+    '想請妳幫我推薦場地！'
+  ].join('\n');
+  const done = () => toast(quiet ? '已幫妳複製整理結果，加入後貼給小幫手就好' : '已複製，加入 LINE@ 後貼給小幫手就好');
+  copyText(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  ok ? done() : toast('沒辦法自動複製，可以長按文字手動複製');
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// 把名單送到 Google 試算表；不等回應，送不出去也不影響結果頁
+function sendLead() {
+  if (!SHEET_URL) return;
+  const r = compute(answers);
+  const payload = {
+    nick: lead.nick,
+    date: dateText(),
+    region: lead.region,
+    contact: lead.contact,
+    primary: r.primary.map(k => TYPES[k].name).join('、'),
+    compare: r.compare.map(k => TYPES[k].name).join('、'),
+    answers: answers.map((l, i) => QS[i].o[L.indexOf(l)])
+  };
+  try {
+    fetch(SHEET_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(() => {});
+  } catch (e) {}
+}
+
+// ---- lead form ----
+$('regionChips').innerHTML = REGIONS.map((r, i) =>
+  `<label class="chip"><input type="radio" name="region" id="region${i}" value="${r}"><span>${r}</span></label>`).join('');
+(() => {
+  const d = new Date();
+  $('wdate').min = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+})();
+$('wdateUnsure').addEventListener('change', e => { $('wdate').disabled = e.target.checked; });
+
+$('leadForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const nick = $('nick').value.trim();
+  const date = $('wdate').value;
+  const unsure = $('wdateUnsure').checked;
+  const regionEl = document.querySelector('input[name="region"]:checked');
+  const contact = $('contact').value.trim();
+  let msg = '';
+  if (!nick) msg = '先告訴小幫手怎麼稱呼妳吧！';
+  else if (!date && !unsure) msg = '選一下婚期月份，還沒決定的話點「還不確定」就好。';
+  else if (!regionEl) msg = '選一個大概的婚禮地區，小幫手才好幫妳找。';
+  else if (!contact) msg = '留下 LINE 顯示名稱或手機，小幫手才找得到妳。';
+  $('leadErr').textContent = msg;
+  if (msg) return;
+  lead = { nick, date, unsure, region: regionEl.value, contact };
+  sendLead();
+  renderResult();
+  show('result');
+});
+
+// ---- wiring ----
+$('startBtn').addEventListener('click', () => startChat(0));
+document.querySelectorAll('.path').forEach(b => b.addEventListener('click', () => startChat(Number(b.dataset.path) + 1)));
+$('backBtn').addEventListener('click', goBack);
+</script>
+</body>
+</html>
