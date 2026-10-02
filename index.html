@@ -893,7 +893,7 @@ function updateChrome() {
   $('stepLabel').textContent = step.type === 'interlude' ? '一半囉' : `${qNumber(cur)}/${Q_TOTAL}`;
   $('nextbar').hidden = AUTO.includes(step.type);
   $('nextBtn').disabled = !isAnswered(step);
-  $('nextBtn').textContent = step.type === 'interlude' ? '繼續下一題' : cur === STEPS.length - 1 ? '完成，幫我整理' : '繼續';
+  $('nextBtn').textContent = step.type === 'interlude' ? '繼續下一題' : cur === STEPS.length - 1 ? '只選這個，幫我整理' : '繼續';
 }
 
 function qTop(step, extraHint) {
@@ -914,7 +914,7 @@ function renderStep(dir) {
   if (step.type === 'pics' || step.type === 'list' || step.type === 'tiles' || step.type === 'multi') {
     const q = QS[step.qi];
     const multi = step.type === 'multi';
-    html += qTop(step, multi ? '最多可以選 2 個，選最在意的就好。' : null);
+    html += qTop(step, multi ? '選 2 個最在意的，就會自動幫妳整理；只想選 1 個，按下方按鈕就好。' : null);
     if (step.type === 'pics') {
       html += `<div class="pics" role="group" aria-label="${q.q}">` + q.o.map((t, k) =>
         `<button type="button" class="pic" data-k="${k}" aria-pressed="false">${scene(L[k])}<span class="lb">${t}</span><span class="badge">${CHECK}</span></button>`).join('') + '</div>';
@@ -983,12 +983,16 @@ function bindStep(step) {
     const btns = [...stage.querySelectorAll('[data-k]')];
     const sync = () => btns.forEach(b => b.setAttribute('aria-pressed', String((ans[step.key] || []).includes(L[b.dataset.k]))));
     btns.forEach(b => b.addEventListener('click', () => {
+      if (busy) return;
       const l = L[b.dataset.k];
       let sel = ans[step.key] || [];
-      if (sel.includes(l)) sel = sel.filter(x => x !== l);
+      const adding = !sel.includes(l);
+      if (!adding) sel = sel.filter(x => x !== l);
       else { sel = sel.concat(l); if (sel.length > 2) sel.shift(); }
       ans[step.key] = sel;
       sync();
+      // 選滿 2 個就直接跳下一頁
+      if (adding && sel.length === 2) { autoNext(q.fb[L.indexOf(l)]); return; }
       const last = sel[sel.length - 1];
       if (last) setFeedback(q.fb[L.indexOf(last)]); else { const f = $('fb'); if (f) f.remove(); }
       updateChrome();
